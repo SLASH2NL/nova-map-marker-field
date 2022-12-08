@@ -92,8 +92,8 @@
 
                 let value = JSON.parse(this.value);
 
-                return value.latitude > 0
-                    || value.longitude > 0;
+                return value.latitude !== 0
+                    || value.longitude !== 0;
             },
 
             locationIsNotSet: function () {
@@ -116,20 +116,17 @@
 
         methods: {
             fill: function (formData) {
-                formData.append(this.field.latitude, this.value.latitude);
-                formData.append(this.field.longitude, this.value.longitude);
+                formData.append(this.field.attribute, this.value || '');
             },
 
             handleChange: function (value) {
-                this.value.latitude = value.latitude;
-                this.value.longitude = value.longitude;
+                this.setValue(value.latitude, value.longitude);
             },
 
             mapMoved: function (event) {
                 let coordinates = event.target.getCenter();
 
-                this.value.latitude = coordinates.lat;
-                this.value.longitude = coordinates.lng;
+                this.setValue(coordinates.lat, coordinates.lng);
             },
 
             setInitialValue: function () {
