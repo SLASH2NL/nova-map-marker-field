@@ -1,5 +1,15 @@
-Nova.booting((Vue, router, store) => {
-    Vue.component('index-nova-map-marker-field', require('./components/IndexField').default);
-    Vue.component('detail-nova-map-marker-field', require('./components/DetailField').default);
-    Vue.component('form-nova-map-marker-field', require('./components/FormField').default);
+import 'leaflet/dist/images/layers-2x.png';
+import 'leaflet/dist/images/layers.png';
+import 'leaflet/dist/images/marker-icon-2x.png';
+import 'leaflet/dist/images/marker-icon.png';
+import 'leaflet/dist/images/marker-shadow.png';
+
+import IndexField from './components/IndexField'
+import DetailField from './components/DetailField'
+import FormField from './components/FormField'
+
+Nova.booting((Vue) => {
+    Vue.component('index-nova-map-marker-field', IndexField);
+    Vue.component('detail-nova-map-marker-field', DetailField);
+    Vue.component('form-nova-map-marker-field', FormField);
 });

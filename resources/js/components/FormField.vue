@@ -1,18 +1,16 @@
 <script>
     import { FormField, HandlesValidationErrors } from 'laravel-nova';
-    import L from "leaflet";
-    import { LCircle, LPolygon, LMap, LTileLayer, LMarker, LIcon } from 'vue2-leaflet';
-    import { BingProvider, EsriProvider, GoogleProvider, LocationIQProvider, OpenCageProvider, OpenStreetMapProvider } from 'leaflet-geosearch';
-    import VGeosearch from 'vue2-leaflet-geosearch';
+    import { LIcon, LPolygon, LCircle, LMap, LTileLayer, LMarker } from '@vue-leaflet/vue-leaflet';
+    import { GeoSearchControl, BingProvider, EsriProvider, GoogleProvider, OpenStreetMapProvider } from 'leaflet-geosearch';
 
     export default {
         components: {
             LCircle,
-            LPolygon,
+            LIcon,
             LMap,
             LMarker,
+            LPolygon,
             LTileLayer,
-            VGeosearch,
         },
 
         mixins: [FormField, HandlesValidationErrors],
@@ -22,11 +20,11 @@
         data: function () {
             return {
                 iconRetina: this.field.iconRetinaUrl
-                    || '/vendor/leaflet/dist/images/marker-icon-2x.png',
+                    || '/images/vendor/leaflet/dist/marker-icon-2x.png',
                 icon: this.field.iconUrl
-                    || '/vendor/leaflet/dist/images/marker-icon.png',
+                    || '/images/vendor/leaflet/dist/marker-icon.png',
                 shadow: this.field.shadowUrl
-                    || '/vendor/leaflet/dist/images/marker-shadow.png',
+                    || '/images/vendor/leaflet/dist/marker-shadow.png',
                 defaultLatitude: this.field.defaultLatitude
                     || 0,
                 defaultLongitude: this.field.defaultLongitude
@@ -54,20 +52,20 @@
 
         mounted: function () {
             this.$nextTick(() => {
-                this.map = this.$refs.map.mapObject;
                 this.setInitialValue();
+
+                setTimeout(() => {
+                    this.map = this.$refs.map.leafletObject;
+
+                    const searchControl = new GeoSearchControl(this.geosearchOptions);
+
+                    this.map.addControl(searchControl);
+                    searchControl.getContainer().onclick = e => { e.stopPropagation(); };
+                });
             });
         },
 
         created: function () {
-            delete L.Icon.Default.prototype._getIconUrl;
-
-            L.Icon.Default.mergeOptions({
-                iconRetinaUrl: this.iconRetina,
-                iconUrl: this.icon,
-                shadowUrl: this.shadow,
-            });
-
             const providerOptions = {};
 
             if (typeof this.field.searchProviderKey !== 'undefined') {
@@ -195,21 +193,20 @@
             },
 
             mapNewCenter: function (event) {
-                var center = [event.lat, event.long];
+                const center = [event.lat, event.long];
                 this.setValue(event.lat, event.long);
                 this.map.panTo(center, {animate:true});
             },
         },
     };
 </script>
-
 <template>
     <default-field
         :errors="errors"
         :field="field"
         :full-width-content="true"
     >
-        <template slot="field">
+        <template #field>
             <div class="map-field z-10 p-0 w-full form-control form-input-bordered overflow-hidden relative"
                 :class="mapErrorClasses"
             >
@@ -219,19 +216,26 @@
                     :center="mapCenter"
                     :options="mapOptions"
                     :zoom="defaultZoom"
+                    :minZoom="3"
+                    :maxZoom="18"
                     @move="mapMoved"
                 >
                     <l-tile-layer
                         :url="tileUrl"
                         :subdomains="field.subdomains"
                     ></l-tile-layer>
+
                     <l-marker
                         :options="markerOptions"
                         :lat-lng="mapCenter"
-                    ></l-marker>
-                    <v-geosearch
-                        :options="geosearchOptions"
-                    ></v-geosearch>
+                    >
+                        <l-icon
+                            :icon-url="this.icon"
+                            :icon-retina-url="this.iconRetina"
+                            :shadow-url="this.shadow"
+                        />
+                    </l-marker>
+
                     <l-circle
                         v-if="circleHasRadius"
                         :lat-lng="mapCenter"
@@ -241,6 +245,7 @@
                         :weight="circleStroke"
                         :fillOpacity="circleOpacity"
                     />
+
                     <l-polygon
                         v-for="(polygon, index) in polygons"
                         :key="index"
