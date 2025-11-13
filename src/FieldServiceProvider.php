@@ -1,10 +1,10 @@
-<?php namespace GeneaLabs\NovaMapMarkerField\Providers;
+<?php namespace GeneaLabs\NovaMapMarkerField;
 
 use Illuminate\Support\ServiceProvider;
 use Laravel\Nova\Events\ServingNova;
 use Laravel\Nova\Nova;
 
-class Service extends ServiceProvider
+class FieldServiceProvider extends ServiceProvider
 {
     public function boot()
     {
@@ -13,7 +13,7 @@ class Service extends ServiceProvider
         ], 'assets');
 
         Nova::serving(function (ServingNova $event) {
-            Nova::script('nova-map-marker-field', __DIR__ . '/../../dist/js/field.js');
+            Nova::mix('nova-map-marker-field', __DIR__.'/../dist/mix-manifest.json');
         });
     }
 

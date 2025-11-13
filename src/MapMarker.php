@@ -7,6 +7,11 @@ use Laravel\Nova\Http\Requests\NovaRequest;
 
 class MapMarker extends Field
 {
+    /**
+     * The field's component.
+     *
+     * @var string
+     */
     public $component = 'nova-map-marker-field';
 
     protected function fillAttributeFromRequest(NovaRequest $request, $requestAttribute, $model, $attribute)
@@ -14,16 +19,16 @@ class MapMarker extends Field
         if ($request->exists($requestAttribute)) {
             $result = json_decode($request->{$requestAttribute}, false);
 
-            $model->{$result->latitude_field} = $this->isNullValue($result->latitude)
+            $model->{$result->latitude_field} = $this->isValidNullValue($result->latitude)
                 ? null
                 : $result->latitude;
-            $model->{$result->longitude_field} = $this->isNullValue($result->longitude)
+            $model->{$result->longitude_field} = $this->isValidNullValue($result->longitude)
                 ? null
                 : $result->longitude;
         }
     }
 
-    public function getRules(NovaRequest $request)
+    public function getRules(NovaRequest $request): array
     {
         return [
             $this->attribute => is_callable($this->rules)
@@ -32,7 +37,7 @@ class MapMarker extends Field
         ];
     }
 
-    public function getCreationRules(NovaRequest $request)
+    public function getCreationRules(NovaRequest $request): array
     {
         $rules = [
             $this->attribute => is_callable($this->creationRules)
@@ -46,7 +51,7 @@ class MapMarker extends Field
         );
     }
 
-    public function getUpdateRules(NovaRequest $request)
+    public function getUpdateRules(NovaRequest $request): array
     {
         $rules = [
             $this->attribute => is_callable($this->updateRules)
@@ -136,7 +141,7 @@ class MapMarker extends Field
         return $this->withMeta([__FUNCTION__ => $url]);
     }
 
-    public function resolve($resource, $attribute = null)
+    public function resolve($resource, ?string $attribute = null): void
     {
         $attribute = $attribute ?? $this->attribute;
         $latitudeField = $this->meta["latitude"] ?? "latitude";
@@ -149,7 +154,7 @@ class MapMarker extends Field
         ]);
     }
 
-    public function isRequired(NovaRequest $request)
+    public function isRequired(NovaRequest $request): bool
     {
         return with($this->requiredCallback, function ($callback) use ($request) {
             if ($callback === true || (is_callable($callback) && call_user_func($callback, $request))) {

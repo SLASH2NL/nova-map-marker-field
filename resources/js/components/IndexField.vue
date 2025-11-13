@@ -61,7 +61,7 @@ export default {
     </span>
 </template>
 
-<style lang="scss" scoped>
+<style scoped>
     .location {
         white-space: nowrap;
     }

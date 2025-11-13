@@ -13,8 +13,8 @@ We thank the following sponsors for their generosity, please take a moment to ch
 - [LIX](https://lix-it.com)
 
 ## Requirements
-- Laravel 9.0+
-- Nova 3.9+
+- Laravel 12.0+
+- Nova 5+
 
 ## Installation
 1. Install the package:

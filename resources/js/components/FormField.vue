@@ -1,204 +1,204 @@
 <script>
-    import { FormField, HandlesValidationErrors } from 'laravel-nova';
-    import { LIcon, LPolygon, LCircle, LMap, LTileLayer, LMarker } from '@vue-leaflet/vue-leaflet';
-    import { GeoSearchControl, BingProvider, EsriProvider, GoogleProvider, OpenStreetMapProvider } from 'leaflet-geosearch';
+import { FormField, HandlesValidationErrors } from 'laravel-nova';
+import { LIcon, LPolygon, LCircle, LMap, LTileLayer, LMarker } from '@vue-leaflet/vue-leaflet';
+import { GeoSearchControl, BingProvider, EsriProvider, GoogleProvider, OpenStreetMapProvider } from 'leaflet-geosearch';
 
-    export default {
-        components: {
-            LCircle,
-            LIcon,
-            LMap,
-            LMarker,
-            LPolygon,
-            LTileLayer,
-        },
+export default {
+    components: {
+        LCircle,
+        LIcon,
+        LMap,
+        LMarker,
+        LPolygon,
+        LTileLayer,
+    },
 
-        mixins: [FormField, HandlesValidationErrors],
+    mixins: [FormField, HandlesValidationErrors],
 
-        props: ['resourceName', 'resourceId', 'field'],
+    props: ['resourceName', 'resourceId', 'field'],
 
-        data: function () {
-            return {
-                iconRetina: this.field.iconRetinaUrl
-                    || '/images/vendor/leaflet/dist/marker-icon-2x.png',
-                icon: this.field.iconUrl
-                    || '/images/vendor/leaflet/dist/marker-icon.png',
-                shadow: this.field.shadowUrl
-                    || '/images/vendor/leaflet/dist/marker-shadow.png',
-                defaultLatitude: this.field.defaultLatitude
-                    || 0,
-                defaultLongitude: this.field.defaultLongitude
-                    || 0,
-                defaultZoom: this.field.defaultZoom
-                    || 12,
-                tileUrl: 'https://{s}.tile.osm.org/{z}/{x}/{y}.png',
-                geosearchOptions: {
-                    provider: new EsriProvider(),
-                    showMarker: false,
-                    style: "bar",
-                    searchLabel: this.field.searchLabel
-                        || "Enter address",
-                },
-                mapOptions: {
-                    doubleClickZoom: 'center',
-                    scrollWheelZoom: 'center',
-                    touchZoom: 'center',
-                },
-                markerOptions: {
-                    interactive: false,
-                },
-            };
-        },
+    data: function () {
+        return {
+            iconRetina: this.field.iconRetinaUrl
+                || '/images/vendor/leaflet/dist/marker-icon-2x.png',
+            icon: this.field.iconUrl
+                || '/images/vendor/leaflet/dist/marker-icon.png',
+            shadow: this.field.shadowUrl
+                || '/images/vendor/leaflet/dist/marker-shadow.png',
+            defaultLatitude: this.field.defaultLatitude
+                || 0,
+            defaultLongitude: this.field.defaultLongitude
+                || 0,
+            defaultZoom: this.field.defaultZoom
+                || 12,
+            tileUrl: 'https://{s}.tile.osm.org/{z}/{x}/{y}.png',
+            geosearchOptions: {
+                provider: new EsriProvider(),
+                showMarker: false,
+                style: "bar",
+                searchLabel: this.field.searchLabel
+                    || "Enter address",
+            },
+            mapOptions: {
+                doubleClickZoom: 'center',
+                scrollWheelZoom: 'center',
+                touchZoom: 'center',
+            },
+            markerOptions: {
+                interactive: false,
+            },
+        };
+    },
 
-        mounted: function () {
-            this.$nextTick(() => {
-                this.setInitialValue();
+    mounted: function () {
+        this.$nextTick(() => {
+            this.setInitialValue();
 
-                setTimeout(() => {
-                    this.map = this.$refs.map.leafletObject;
+            setTimeout(() => {
+                this.map = this.$refs.map.leafletObject;
 
-                    const searchControl = new GeoSearchControl(this.geosearchOptions);
+                const searchControl = new GeoSearchControl(this.geosearchOptions);
 
-                    this.map.addControl(searchControl);
-                    searchControl.getContainer().onclick = e => { e.stopPropagation(); };
-                });
+                this.map.addControl(searchControl);
+                searchControl.getContainer().onclick = e => { e.stopPropagation(); };
             });
+        });
+    },
+
+    created: function () {
+        const providerOptions = {};
+
+        if (typeof this.field.searchProviderKey !== 'undefined') {
+            providerOptions.params.key = this.field.searchProviderKey;
+        }
+
+        switch (this.field.searchProvider) {
+            case "bing":
+                this.geosearchOptions.provider = new BingProvider(providerOptions);
+                break;
+            case "google":
+                this.geosearchOptions.provider = new GoogleProvider(providerOptions);
+                break;
+            case "locationiq":
+                this.geosearchOptions.provider = new LocationIQProvider(providerOptions);
+                break;
+            case "opencage":
+                this.geosearchOptions.provider = new OpenCageProvider(providerOptions);
+                break;
+            case "openstreetmap":
+                this.geosearchOptions.provider = new OpenStreetMapProvider(providerOptions);
+                break;
+        }
+
+        if (this.field.tileProvider !== undefined) {
+            this.tileUrl = this.field.tileProvider;
+        }
+
+        Nova.$on(this.listenToEventName, this.mapNewCenter)
+    },
+
+    computed: {
+        circleColor: function () {
+            return ((this.field.centerCircle || {}).color || 'gray');
         },
 
-        created: function () {
-            const providerOptions = {};
+        circleHasRadius: function () {
+            return this.circleRadius > 0;
+        },
 
-            if (typeof this.field.searchProviderKey !== 'undefined') {
-                providerOptions.params.key = this.field.searchProviderKey;
+        circleHasStroke: function () {
+            return this.circleStroke > 0;
+        },
+
+        circleOpacity: function () {
+            return ((this.field.centerCircle || {}).opacity || 0.2);
+        },
+
+        circleRadius: function () {
+            return ((this.field.centerCircle || {}).radius || 0);
+        },
+
+        circleStroke: function () {
+            return ((this.field.centerCircle || {}).border || 0);
+        },
+
+        polygons: function () {
+            return this.field.polygons || [];
+        },
+
+        hasLocationError: function () {
+            return this.errors.has(this.field.attribute);
+        },
+
+        listenToEventName: function () {
+            return this.field.listenToEventName
+                || "recenterMapOn"
+        },
+
+        mapErrorClasses() {
+            return this.hasLocationError
+                ? this.errorClass
+                : '';
+        },
+
+        showErrors: function () {
+            // console.error(this.errors);
+        },
+
+        mapCenter: function () {
+            if (this.value.length === 0) {
+                this.setInitialValue();
             }
 
-            switch (this.field.searchProvider) {
-                case "bing":
-                    this.geosearchOptions.provider = new BingProvider(providerOptions);
-                    break;
-                case "google":
-                    this.geosearchOptions.provider = new GoogleProvider(providerOptions);
-                    break;
-                case "locationiq":
-                    this.geosearchOptions.provider = new LocationIQProvider(providerOptions);
-                    break;
-                case "opencage":
-                    this.geosearchOptions.provider = new OpenCageProvider(providerOptions);
-                    break;
-                case "openstreetmap":
-                    this.geosearchOptions.provider = new OpenStreetMapProvider(providerOptions);
-                    break;
-            }
+            let value = JSON.parse(this.value);
 
-            if (this.field.tileProvider !== undefined) {
-                this.tileUrl = this.field.tileProvider;
-            }
+            return [
+                (value.latitude || this.field.defaultLatitude || 0),
+                (value.longitude || this.field.defaultLongitude || 0),
+            ];
+        },
+    },
 
-            Nova.$on(this.listenToEventName, this.mapNewCenter)
+    methods: {
+        fill: function (formData) {
+            formData.append(this.field.attribute, this.value || '');
         },
 
-        computed: {
-            circleColor: function () {
-                return ((this.field.centerCircle || {}).color || 'gray');
-            },
-
-            circleHasRadius: function () {
-                return this.circleRadius > 0;
-            },
-
-            circleHasStroke: function () {
-                return this.circleStroke > 0;
-            },
-
-            circleOpacity: function () {
-                return ((this.field.centerCircle || {}).opacity || 0.2);
-            },
-
-            circleRadius: function () {
-                return ((this.field.centerCircle || {}).radius || 0);
-            },
-
-            circleStroke: function () {
-                return ((this.field.centerCircle || {}).border || 0);
-            },
-
-            polygons: function () {
-                return this.field.polygons || [];
-            },
-
-            hasLocationError: function () {
-                return this.errors.has(this.field.attribute);
-            },
-
-            listenToEventName: function () {
-                return this.field.listenToEventName
-                    || "recenterMapOn"
-            },
-
-            mapErrorClasses() {
-                return this.hasLocationError
-                    ? this.errorClass
-                    : '';
-            },
-
-            showErrors: function () {
-                // console.error(this.errors);
-            },
-
-            mapCenter: function () {
-                if (this.value.length === 0) {
-                    this.setInitialValue();
-                }
-
-                let value = JSON.parse(this.value);
-
-                return [
-                    (value.latitude || this.field.defaultLatitude || 0),
-                    (value.longitude || this.field.defaultLongitude || 0),
-                ];
-            },
+        handleChange: function (value) {
+            this.setValue(value.latitude, value.longitude);
         },
 
-        methods: {
-            fill: function (formData) {
-                formData.append(this.field.attribute, this.value || '');
-            },
+        mapMoved: function (event) {
+            let coordinates = event.target.getCenter();
 
-            handleChange: function (value) {
-                this.setValue(value.latitude, value.longitude);
-            },
-
-            mapMoved: function (event) {
-                let coordinates = event.target.getCenter();
-
-                this.setValue(coordinates.lat, coordinates.lng);
-            },
-
-            setInitialValue: function () {
-                let value = JSON.parse(this.value || this.field.value);
-
-                this.setValue(value.latitude, value.longitude);
-            },
-
-            setValue: function (latitude, longitude) {
-                this.value = '{"latitude_field":'
-                    + '"' + (this.field.latitude || 'latitude') + '"'
-                    + ',"longitude_field":'
-                    + '"' + (this.field.longitude || 'longitude') + '"'
-                    + ',"latitude":'
-                    + (latitude || 0)
-                    + ',"longitude":'
-                    + (longitude || 0)
-                    + '}';
-            },
-
-            mapNewCenter: function (event) {
-                const center = [event.lat, event.long];
-                this.setValue(event.lat, event.long);
-                this.map.panTo(center, {animate:true});
-            },
+            this.setValue(coordinates.lat, coordinates.lng);
         },
-    };
+
+        setInitialValue: function () {
+            let value = JSON.parse(this.value || this.field.value);
+
+            this.setValue(value.latitude, value.longitude);
+        },
+
+        setValue: function (latitude, longitude) {
+            this.value = '{"latitude_field":'
+                + '"' + (this.field.latitude || 'latitude') + '"'
+                + ',"longitude_field":'
+                + '"' + (this.field.longitude || 'longitude') + '"'
+                + ',"latitude":'
+                + (latitude || 0)
+                + ',"longitude":'
+                + (longitude || 0)
+                + '}';
+        },
+
+        mapNewCenter: function (event) {
+            const center = [event.lat, event.long];
+            this.setValue(event.lat, event.long);
+            this.map.panTo(center, {animate:true});
+        },
+    },
+};
 </script>
 <template>
     <default-field
@@ -207,7 +207,7 @@
         :full-width-content="true"
     >
         <template #field>
-            <div class="map-field z-10 p-0 w-full form-control form-input-bordered overflow-hidden relative"
+            <div class="map-field z-10 p-0 w-full form-control form-input form-control-bordered overflow-hidden relative"
                 :class="mapErrorClasses"
             >
                 <l-map
@@ -257,7 +257,7 @@
     </default-field>
 </template>
 
-<style lang="scss" scoped>
+<style scoped>
     @import "~leaflet/dist/leaflet.css";
     @import "~leaflet-geosearch/assets/css/leaflet.css";
 
