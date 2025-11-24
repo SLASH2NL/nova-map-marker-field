@@ -19,11 +19,11 @@ export default {
     data: function () {
         return {
             iconRetina: this.field.iconRetinaUrl
-                || '/images/vendor/leaflet/dist/marker-icon-2x.png',
+                || '/vendor/leaflet/dist/marker-icon-2x.png',
             icon: this.field.iconUrl
-                || '/images/vendor/leaflet/dist/marker-icon.png',
+                || '/vendor/leaflet/dist/marker-icon.png',
             shadow: this.field.shadowUrl
-                || '/images/vendor/leaflet/dist/marker-shadow.png',
+                || '/vendor/leaflet/dist/marker-shadow.png',
             tileUrl: 'https://{s}.tile.osm.org/{z}/{x}/{y}.png',
             mapOptions: {
                 boxZoom: false,

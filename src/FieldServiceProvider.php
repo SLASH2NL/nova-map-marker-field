@@ -9,7 +9,7 @@ class FieldServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->publishes([
-            __DIR__ . '/../../dist/vendor' => public_path('vendor'),
+            __DIR__ . '/../dist/images/vendor' => public_path('vendor'),
         ], 'assets');
 
         Nova::serving(function (ServingNova $event) {

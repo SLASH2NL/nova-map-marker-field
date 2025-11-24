@@ -20,11 +20,11 @@ export default {
     data: function () {
         return {
             iconRetina: this.field.iconRetinaUrl
-                || '/images/vendor/leaflet/dist/marker-icon-2x.png',
+                || '/vendor/leaflet/dist/marker-icon-2x.png',
             icon: this.field.iconUrl
-                || '/images/vendor/leaflet/dist/marker-icon.png',
+                || '/vendor/leaflet/dist/marker-icon.png',
             shadow: this.field.shadowUrl
-                || '/images/vendor/leaflet/dist/marker-shadow.png',
+                || '/vendor/leaflet/dist/marker-shadow.png',
             defaultLatitude: this.field.defaultLatitude
                 || 0,
             defaultLongitude: this.field.defaultLongitude
